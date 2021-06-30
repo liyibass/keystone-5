@@ -1,7 +1,7 @@
 /** @jsx jsx */
 
 import { jsx } from '@emotion/core';
-import { useRef, forwardRef, useState, useCallback } from 'react';
+import { useRef, forwardRef, useState, useCallback, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 
 import { SearchIcon, XIcon } from '@primer/octicons-react';
@@ -18,16 +18,24 @@ export default function Search({ isLoading, list }) {
   const { searchValue, onChange, onClear, onSubmit } = useListSearch();
   const [value, setValue] = useState(searchValue);
   const inputRef = useRef();
+  const [readyToSearch, setReadyToSearch] = useState(searchValue.length > 0);
 
   const hasValue = searchValue && searchValue.length;
-  const Icon = hasValue ? XIcon : SearchIcon;
   const isFetching = hasValue && isLoading;
 
-  const onChangeDebounced = useCallback(debounce(onChange, 400), []);
+  // const onChangeDebounced = useCallback(debounce(onChange, 400), []);
 
   const handleChange = ({ target: { value } }) => {
     setValue(value);
-    onChangeDebounced(value);
+    // onChangeDebounced(value);
+  };
+
+  useEffect(() => {
+    setReadyToSearch(true);
+  }, [value]);
+
+  const handleSearch = () => {
+    onChange(value);
   };
 
   const handleClear = () => {
@@ -67,12 +75,12 @@ export default function Search({ isLoading, list }) {
           alignItems: 'center',
           color: colors.N30,
           cursor: 'pointer',
-          display: 'flex',
+          display: value.length > 0 ? 'flex' : 'none',
           height: '100%',
           justifyContent: 'center',
-          pointerEvents: hasValue ? 'all' : 'none',
+          pointerEvents: 'all',
           position: 'absolute',
-          right: 0,
+          right: 30,
           top: 0,
           width: 40,
           ':hover': {
@@ -81,7 +89,29 @@ export default function Search({ isLoading, list }) {
         }}
         onClick={hasValue && !isFetching ? handleClear : null}
       >
-        {isFetching ? <LoadingSpinner size={16} /> : <Icon />}
+        <XIcon />
+      </div>
+
+      <div
+        css={{
+          alignItems: 'center',
+          color: colors.N30,
+          cursor: 'pointer',
+          display: 'flex',
+          height: '100%',
+          justifyContent: 'center',
+          pointerEvents: 'all',
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          width: 40,
+          ':hover': {
+            color: hasValue ? colors.text : colors.N30,
+          },
+        }}
+        onClick={isFetching ? handleClear : handleSearch}
+      >
+        {isFetching ? <LoadingSpinner size={16} /> : <SearchIcon />}
       </div>
     </form>
   );
